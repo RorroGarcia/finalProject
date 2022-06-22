@@ -32,6 +32,15 @@ app.get("/name/:name", async function (request, response) {
   );
   response.json(rows);
 });
+app.get("/user/:idUser", async function (request, response) {
+  // conectar();
+  connection = await conectar();
+  const [rows] = await connection.execute(
+    "SELECT * FROM `users`  where `idUser`= ?",
+    [request.params.idUser]
+  );
+  response.json(rows);
+});
 app.get("/users", async function (request, response) {
   // conectar();
   connection = await conectar();
