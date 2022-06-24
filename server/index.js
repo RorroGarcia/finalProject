@@ -39,7 +39,7 @@ app.get("/user/:idUser", async function (request, response) {
     "SELECT * FROM `users`  where `idUser`= ?",
     [request.params.idUser]
   );
-  response.json(rows);
+  response.json(rows[0]);
 });
 app.get("/users", async function (request, response) {
   // conectar();
@@ -61,9 +61,18 @@ app.delete("/deleteUser/:id", async function (request, response) {
 });
 
 app.put("/putUser", async function (request, response) {
+  console.log(request.body)
   connection = await conectar();
-  await connection.execute("Update  `users` set `name`=? where `idUser`=?", [
+  await connection.execute("Update  `users` set `name`=?,`surname`=?,`address`=? ,`phone`=?, `email`=?, `birthDate`=?, `injuries`=?, `pathology`=?, `notes`=? where `idUser`=?", [
     request.body.name,
+    request.body.surname,
+    request.body.address,
+    request.body.phone,
+    request.body.email,
+    request.body.birthDate,
+    request.body.injuries,
+    request.body.pathology,
+    request.body.notes,
     request.body.idUser,
   ]);
   response.json("Usuario editado");
@@ -352,10 +361,11 @@ app.delete("/deleteGlobalsTest/:idGlobalTest", async function (request, response
   response.json("Test global borrado");
 });
 
-app.get("/getGlobalsTest", async function (request, response) {
+app.get("/getGlobalsTest/:idUser", async function (request, response) {
   connection = await conectar();
   const [rows] = await connection.execute(
-    "SELECT * FROM `globalsTest`;",
+    "SELECT * FROM `globalsTest` where idUser=?;",
+    [request.params.idUser]
    
   );
   response.json(rows);
