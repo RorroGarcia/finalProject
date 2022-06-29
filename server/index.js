@@ -5,6 +5,7 @@ app.use(express.json());
 const mysql = require("mysql2/promise");
 const md5 = require("nodejs-md5");
 const cors = require("cors");
+const { json } = require("express");
 app.use(cors());
 
 //Crear conexión a la base de datos
@@ -81,13 +82,16 @@ app.put("/putUser", async function (request, response) {
 app.post("/postUser", async function (request, response) {
   connection = await conectar();
   await connection.execute(
-    "INSERT INTO `users` (name, surname, phone, email, birthDate) VALUES(?,?,?,?,?)",
+    "INSERT INTO `users` (name, surname, phone, email, birthDate, injuries, pathology, notes) VALUES(?,?,?,?,?,?,?,?)",
     [
       request.body.name,
       request.body.surname,
       request.body.phone,
       request.body.email,
       request.body.birthDate,
+      request.body.injuries,
+      request.body.pathology,
+      request.body.notes,
     ]
   );
   response.json("Usuario creado");
@@ -224,12 +228,18 @@ app.post("/postLoginAdmi", async function (request, response) {
     } else {
       if (user[0] != null) {
         if (user[0].email === request.body.email && user[0].password === md5) {
-          response.json("Inicio de sesión iniciado");
+          response.status(200);
+          response.json("Welcome")
+          
         } else {
-          response.json("Contraseña incorrecta");
+          response.status(400)
+          response.json("Error")
+          
         }
       } else {
-        response.json("Correo no registrado");
+        response.status(400)
+        response.json("Error")
+        
       }
     }
   });
@@ -241,7 +251,7 @@ app.get("/getInterview/:idUser", async function (request, response) {
     "SELECT * FROM `initialInterview` where idUser=?;",
     [request.params.idUser]
   );
-  response.json(rows);
+  response.json(rows[0]);
 });
 
 app.post("/postInterview", async function (request, response) {
@@ -291,9 +301,8 @@ app.delete("/deleteInterview/:idInterview", async function (request, response) {
 app.put("/putInterview", async function (request, response) {
   connection = await conectar();
   await connection.execute(
-    "Update  initialInterview set idUser=? ,name=?, date=?, age=?, occupation=?, reason=?, sports=?, goals=?, antecedent=?, muscularPain=?, scars=?, scoliosis=?, illnesses=?, births=?, pelvicFloor=? ,dream=?, stress=?, atm=?,mood=?, digestions=?, notes=? where idInitialInterview=?;",
+    "Update  initialInterview set  name=?, date=?, age=?, occupation=?, reason=?, sports=?, goals=?, antecedent=?, muscularPain=?, scars=?, scoliosis=?, illnesses=?, births=?, pelvicFloor=? ,dream=?, stress=?, atm=?,mood=?, digestions=?, notes=? where idUser=?;",
     [
-      request.body.idUser,
       request.body.name,
       request.body.date,
       request.body.age,
@@ -314,7 +323,8 @@ app.put("/putInterview", async function (request, response) {
       request.body.mood,
       request.body.digestions,
       request.body.notes,
-      request.body.idInitialInterview
+      request.body.idUser,
+      
     ]
   );
   response.json("Entrevista actualizada");
@@ -371,13 +381,22 @@ app.get("/getGlobalsTest/:idUser", async function (request, response) {
   response.json(rows);
 });
 
-app.get("/getGlobalTest/:idGlobalTest", async function (request, response) {
+app.get("/getGlobalTest/:idUser", async function (request, response) {
+  connection = await conectar();
+  const [rows] = await connection.execute(
+    "Select * from `globalsTest` where idUser=?",
+    [request.params.idUser]
+  );
+  response.json(rows);
+});
+
+app.get("/getGlobalidTest/:idGlobalTest", async function (request, response) {
   connection = await conectar();
   const [rows] = await connection.execute(
     "Select * from `globalsTest` where idGlobalTest=?",
     [request.params.idGlobalTest]
   );
-  response.json(rows);
+  response.json(rows[0]);
 });
 
 app.post("/postHipTest", async function (request, response) {
@@ -436,11 +455,11 @@ app.get("/getHipsTest", async function (request, response) {
   response.json(rows);
 });
 
-app.get("/getHipTest/:idHipTest", async function (request, response) {
+app.get("/getHipTest/:idUser", async function (request, response) {
   connection = await conectar();
   const [rows] = await connection.execute(
-    "SELECT * FROM `hipTest` where idHipTest=?;",
-    [request.params.idHipTest]
+    "SELECT * FROM `hipTest` where idUser=?;",
+    [request.params.idUser]
    
   );
   response.json(rows);
@@ -503,12 +522,24 @@ app.get("/getShoulderTest", async function (request, response) {
   response.json(rows);
 });
 
-app.get("/getShoulderTestid/:idShoulderTest", async function (request, response) {
+app.get("/getShoulderTest/:idUser", async function (request, response) {
   connection = await conectar();
   const [rows] = await connection.execute(
-    "SELECT * FROM `shoulderTest` where idShoulderTest=?;",
-    [request.params.idShoulderTest]
+    "SELECT * FROM `shoulderTest` where idUser=?;",
+    [request.params.idUser]
    
   );
   response.json(rows);
+});
+
+app.post("/postPhoto", async function (request, response) {
+  connection = await conectar();
+  await connection.execute(
+    "INSERT INTO `globalsTest` (photo) VALUES(?) ",
+    [
+      request.file.photo
+
+    ]     
+  );
+  response.json("Foto añadida");
 });
